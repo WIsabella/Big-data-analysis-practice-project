@@ -16,18 +16,23 @@ class User(ABC):
     @abstractmethod
     def upload_data(self, importer, file_path: str, table_name: str, if_exists: str = 'append') -> Dict[str, Any]:
         """用户上传数据的行为"""
-        """以下重写的upload_data函数都只是导入xlsx的文件数据"""
+        """以下重写的upload_data函数都是导入xlsx的文件数据"""
         pass
 
     @abstractmethod
-    def query_data(self, importer, query: str, params: Optional[Dict] = None) -> Optional[pd.DataFrame]:
+    def query_data(self, importer, bacteria_data) -> Optional[pd.DataFrame]:
         """用户查询数据的行为"""
+        """
+        bacteria_data可能是用户输入的菌种名字，也可能是用户输入的菌种的16s序列
+        每种类型的用户能查询的信息都是固定的，可以在每个用户的函数中编写固定的sql语句，只需要将菌种的信息传进来即可
+        """
         pass
 
     @abstractmethod
     def change_data(self, importer, table_name: str, condition: Optional[str] = None) -> bool:
-        """用户删除数据的行为"""
+        """用户编辑数据的行为"""
         pass
+
 
 class GuestUser(User):
     """游客类 - 最低权限"""
@@ -44,13 +49,19 @@ class GuestUser(User):
             "rows_imported": 0
         }
 
-    def change_data(self, importer, table_name: str, condition: Optional[str] = None) -> bool:
+    def change_data(self, importer, table_name: str, condition: Optional[str] = None):
         """游客用户删除数据 - 无权限"""
-        print("该用户没有权限去删除数据，该用户为游客用户")
-        return False
+        return {
+            "success": False,
+            "message": "该用户没有权限修改数据文件，该用户为游客用户",
+            "rows_imported": 0
+        }
 
-    def query_data(self, importer, query: str, params: Optional[Dict] = None) -> Optional[pd.DataFrame]:
+    def query_data(self, importer, bacteria_data) -> Optional[pd.DataFrame]:
         """游客用户查询数据 - 有限权限"""
+
+
+
 
 
 class PrivilegedUser(User):
@@ -104,11 +115,15 @@ class PrivilegedUser(User):
                 "rows_imported": 0
             }
 
-    def query_data(self, importer, query: str, params: Optional[Dict] = None) -> Optional[pd.DataFrame]:
+    def query_data(self, importer, bacteria_data) -> Optional[pd.DataFrame]:
         return
 
-    def change_data(self, importer, table_name: str, condition: Optional[str] = None) -> bool:
-       return
+    def change_data(self, importer, table_name: str, condition: Optional[str] = None):
+        return {
+            "success": False,
+            "message": "该用户没有权限修改数据文件，该用户为一般用户",
+            "rows_imported": 0
+        }
 
 
 
@@ -157,7 +172,7 @@ class SuperUser(User):
                 "rows_imported": 0
             }
 
-    def query_data(self, importer, query: str, params: Optional[Dict] = None) -> Optional[pd.DataFrame]:
+    def query_data(self, importer, bacteria_data) -> Optional[pd.DataFrame]:
         """超级用户查询数据 - 无限制"""
 
     def change_data(self, importer, table_name: str, condition: Optional[str] = None)->bool:
@@ -172,8 +187,8 @@ class PostgreSQLDataImporter:
             'host': '101.42.37.252',
             'port': 5432,
             'database': 'sdu',
-            'user': '',  # 通过前端获取
-            'password': ''  # 通过前端获取
+            'user': 'postgres',  # 通过前端获取
+            'password': '12345678'  # 通过前端获取
         }
         self.engine = None
         self.connection_string = None
@@ -189,29 +204,37 @@ class PostgreSQLDataImporter:
         # 实现从前端获取文件信息的逻辑
         pass
 
-    def verify_user_credentials(self, username: str, password: str) -> Tuple[bool, Optional[Dict]]:
+    def verify_user_credentials(self) -> Tuple[bool, Optional[Dict]]:
         """验证用户凭据是否与数据库记录匹配"""
         # 实现用户凭据验证逻辑
         # 返回 (验证结果, 用户数据)
-        pass
+        # 此处返回的用户数据是一个元组的列表，每一个元组表示查询得到的一行用户数据，要用索引访问
+        try:
+            userdata = self.get_userdata_from_web()
+            sql = f"select * from users where username='{userdata['username']}' and password='{userdata['password']}'"
+            cursor = self.engine.cursor()
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            if len(result) == 0 :
+                return False, None
+            else:
+                return True, result
+        except Exception as e:
+            print(f"验证失败： {e}")
 
-    def get_user_permission_level(self, user_id: int) -> int:
-        """从数据库获取用户的权限级别"""
-        # 实现获取用户权限级别的逻辑
-        pass
-
-    def verify_user_power(self, username: str, password: str) -> bool:
+    def verify_user_power(self) -> bool:
         """验证用户权限并创建相应用户实例"""
         # 1. 验证用户凭据
-        is_valid, user_data = self.verify_user_credentials(username, password)
+        is_valid, user_data = self.verify_user_credentials()
         if not is_valid or not user_data:
             # 创建游客用户
             self.user = GuestUser("guest", 0)
             return False
 
-        # 2. 获取用户权限级别
-        user_id = user_data['id']
-        permission_level = self.get_user_permission_level(user_id)
+        # 2. 获取用户权限级别，假设用户表第0列是id，第一列是名字，第二列是密码，第三列是权限等级
+        user_id = user_data[0][0]
+        permission_level = user_data[0][3]
+        username = user_data[0][1]
 
         # 3. 根据权限级别创建相应用户实例
         if permission_level == 0:
@@ -242,24 +265,13 @@ class PostgreSQLDataImporter:
             )
 
             # 测试连接
-            return self.test_connection()
+            print("数据库连接成功")
+            return True
 
         except Exception as e:
             print(f"数据库连接失败：{e}")
             return False
 
-    def test_connection(self) -> bool:
-        """测试数据库连接"""
-        try:
-            with self.engine.connect() as conn:
-                result = conn.execute(text("SELECT 1"))
-                if result.scalar() == 1:
-                    print("数据库连接成功")
-                    return True
-            return False
-        except Exception as e:
-            print(f"数据库连接测试失败: {e}")
-            return False
 
     def upload_data(self, file_path: str, table_name: str, if_exists: str = 'append') -> Dict[str, Any]:
         """上传数据 - 通过当前用户实例调用"""
@@ -271,19 +283,22 @@ class PostgreSQLDataImporter:
             }
         return self.user.upload_data(self, file_path, table_name, if_exists)
 
-    def query_data(self, query: str, params: Optional[Dict] = None) -> Optional[pd.DataFrame]:
+    def query_data(self, bacteria_data) -> Optional[pd.DataFrame]:
         """查询数据 - 通过当前用户实例调用"""
+        """
+        bacteria_data可能是用户输入的菌种名字，也可能是用户输入的菌种的16s序列
+        """
         if not self.user:
             print("用户未登录")
             return None
-        return self.user.query_data(self, query, params)
+        return self.user.query_data(self, bacteria_data)
 
-    def delete_data(self, table_name: str, condition: Optional[str] = None) -> bool:
+    def change_data(self, table_name: str, condition: Optional[str] = None) -> bool:
         """删除数据 - 通过当前用户实例调用"""
         if not self.user:
             print("用户未登录")
             return False
-        return self.user.delete_data(self, table_name, condition)
+        return self.user.change_data(self, table_name, condition)
 
 
     def close_connection(self):
