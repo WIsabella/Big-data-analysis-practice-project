@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.views import APIView
+
 from.models import Test1
 from.forms import BacteriaSearchForm
 from datetime import datetime
@@ -9,6 +13,27 @@ from django.db import connection
 import os
 import csv
 
+'''定义权限，每个用户可以拥有哪一些权限'''
+
+'''查询权限'''
+class CanQueryBacteria(APIView):
+    def has_permission(self,request, view):
+        return request.user.has_perm("view_test1")
+
+'''上传权限'''
+class CanAddBacteria(APIView):
+    def has_permission(self, request, view):
+        return request.user.has_perm("add_test1")
+
+'''删除权限'''
+class CanDeleteBacteria(APIView):
+    def has_permission(self, request, view):
+        return request.user.has_perm('delete_test1')
+
+def HomePage(request):
+    return render(request, '../templates/index.html')
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, CanQueryBacteria])
 def search_bacteria(request):
     '''测试新功能'''
     form = BacteriaSearchForm(request.GET or None)
@@ -60,7 +85,7 @@ def search_bacteria(request):
         "results": results,
         "is_authenticated": is_authenticated,
     }
-    return render(request, "../templates/index.html", context)
+    return JsonResponse(context)
 
     '''原始逻辑'''
 
