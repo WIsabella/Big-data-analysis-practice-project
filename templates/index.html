@@ -8,7 +8,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
-  
+
+  <!-- 手动指定favicon，解决404问题 -->
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzE2NUZG RiIgZD0iTTEyIDJDMTEuNCAyIDExIDQuMjQgMTEgNy41QzExIDExLjQ4IDExLjcgMTUuMjQgMTIgMTkgMTIuMyAxNS4yNCAxMyA xMS40OCAxMyA3LjVDMTMgNC4yNCAxMi42IDIgMTIgMnptMCAyMGMtMS4xIDAtMi0uOS0yLTJWNmMyIDAgMiA0IDIgMTJzMCAxMi0yIDEyek02IDE1aDJ2LTRINnY0em02IDBoMnYtNEg xMnY0em02IDBoMnYtNEg xOFYxNXoiLz48L3N2Zz4=" />
+
   <!-- Tailwind 配置 -->
   <script>
     tailwind.config = {
@@ -28,7 +31,7 @@
       }
     }
   </script>
-  
+
   <!-- 自定义工具类 -->
   <style type="text/tailwindcss">
     @layer utilities {
@@ -43,23 +46,23 @@
       }
     }
   </style>
-  
+
   <style>
     /* 基础动画定义 */
     .fade-in {
       animation: fadeIn 0.8s ease-in-out;
     }
-    
+
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
+
     /* 平滑滚动 */
     html {
       scroll-behavior: smooth;
     }
-    
+
     /* 导航栏滚动效果 */
     .nav-scrolled {
       @apply bg-white shadow-md;
@@ -79,7 +82,7 @@
           </div>
           <span class="text-xl font-bold text-primary">hGMB Database</span>
         </a>
-        
+
         <!-- 桌面导航 -->
         <nav class="hidden md:flex items-center space-x-8">
           <a href="#home" class="text-gray-700 hover:text-primary transition-colors">Home</a>
@@ -88,20 +91,26 @@
           <a href="#features" class="text-gray-700 hover:text-primary transition-colors">Features</a>
           <a href="#query" class="text-gray-700 hover:text-primary transition-colors">Search</a>
         </nav>
-        
-        <!-- 登录按钮 -->
-        <button id="loginBtn" class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-md hover:shadow-lg">
-          <i class="fa fa-user-circle"></i>
-          <span>Login</span>
-        </button>
-        
+
+        <!-- 登录/登出按钮 -->
+        <div class="flex items-center">
+          <button id="loginBtn" class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-md hover:shadow-lg">
+            <i class="fa fa-user-circle"></i>
+            <span>Login</span>
+          </button>
+          <button id="logoutBtn" class="hidden ml-4 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded-lg transition-all duration-300 flex items-center space-x-2 shadow-md hover:shadow-lg">
+            <i class="fa fa-sign-out"></i>
+            <span>Logout</span>
+          </button>
+        </div>
+
         <!-- 移动端菜单按钮 -->
         <button id="menuBtn" class="md:hidden text-gray-700 focus:outline-none">
           <i class="fa fa-bars text-2xl"></i>
         </button>
       </div>
     </div>
-    
+
     <!-- 移动端导航菜单 -->
     <div id="mobileMenu" class="md:hidden hidden bg-white border-t">
       <div class="container mx-auto px-4 py-3 space-y-3">
@@ -161,14 +170,14 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 数据库介绍 -->
     <section id="about" class="py-20 bg-white">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-4">About the Project</h2>
         </div>
-        
+
         <div class="max-w-4xl mx-auto bg-neutral rounded-xl p-8 lg:p-10 shadow-md">
           <p class="text-gray-700 leading-relaxed mb-6">
             An open access human Gut Microbial Biobank (hGMB) were constructed by bacterial isolation and cultivation from feces of health volunteers. In total, 1,170 isolates representing 400 different species from 159 genera, 53 families and 6 phyla were included in hGMB and deposited in International Depository Authority (IDA)- the China General Microbiological Culture Collection Center (CGMCC) for long-term preservation and public use worldwide.
@@ -180,7 +189,7 @@
             Detailed genomic, taxonomic and biologic descriptions of the 102 new species were also provided in the webpage.
           </p>
         </div>
-        
+
         <div class="mt-16 grid md:grid-cols-3 gap-8">
           <div class="bg-neutral rounded-xl p-6 card-hover">
             <div class="w-14 h-14 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
@@ -189,7 +198,7 @@
             <h3 class="text-xl font-bold mb-3">Authenticated Strains</h3>
             <p class="text-gray-600">All strains are carefully authenticated using polyphasic taxonomic approaches including phenotypic, chemotaxonomic and genomic analyses.</p>
           </div>
-          
+
           <div class="bg-neutral rounded-xl p-6 card-hover">
             <div class="w-14 h-14 bg-secondary/10 rounded-lg flex items-center justify-center mb-6">
               <i class="fa fa-dna text-secondary text-2xl"></i>
@@ -197,7 +206,7 @@
             <h3 class="text-xl font-bold mb-3">Genomic Data</h3>
             <p class="text-gray-600">Complete genome sequences are available for all strains, providing valuable resources for comparative genomic and functional studies.</p>
           </div>
-          
+
           <div class="bg-neutral rounded-xl p-6 card-hover">
             <div class="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center mb-6">
               <i class="fa fa-share-alt text-accent text-2xl"></i>
@@ -208,7 +217,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 数据规模 -->
     <section id="scale" class="py-20 bg-neutral">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -216,7 +225,7 @@
           <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-4">Database Scale</h2>
           <p class="text-gray-600 max-w-2xl mx-auto">Comprehensive collection of gut microbial strains with detailed taxonomic classification</p>
         </div>
-        
+
         <div class="grid md:grid-cols-2 gap-10">
           <!-- 图表展示 -->
           <div class="bg-white rounded-xl p-6 shadow-md">
@@ -225,7 +234,7 @@
               <canvas id="taxonomyChart"></canvas>
             </div>
           </div>
-          
+
           <!-- 数据卡片 -->
           <div class="grid grid-cols-2 gap-6">
             <div class="bg-white rounded-xl p-6 shadow-md card-hover">
@@ -236,7 +245,7 @@
               <p class="text-3xl font-bold">1,170</p>
               <p class="text-gray-500 text-sm mt-2">From healthy volunteers</p>
             </div>
-            
+
             <div class="bg-white rounded-xl p-6 shadow-md card-hover">
               <div class="text-secondary text-3xl mb-2">
                 <i class="fa fa-sitemap"></i>
@@ -245,7 +254,7 @@
               <p class="text-3xl font-bold">400</p>
               <p class="text-gray-500 text-sm mt-2">Including 102 new species</p>
             </div>
-            
+
             <div class="bg-white rounded-xl p-6 shadow-md card-hover">
               <div class="text-accent text-3xl mb-2">
                 <i class="fa fa-cubes"></i>
@@ -254,7 +263,7 @@
               <p class="text-3xl font-bold">159</p>
               <p class="text-gray-500 text-sm mt-2">28 novel genera identified</p>
             </div>
-            
+
             <div class="bg-white rounded-xl p-6 shadow-md card-hover">
               <div class="text-primary text-3xl mb-2">
                 <i class="fa fa-cube"></i>
@@ -267,7 +276,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 功能特点 -->
     <section id="features" class="py-20 bg-white">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -275,7 +284,7 @@
           <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-4">Features</h2>
           <p class="text-gray-600 max-w-2xl mx-auto">Different access levels provide varied functionality based on user permissions</p>
         </div>
-        
+
         <div class="grid md:grid-cols-2 gap-10">
           <!-- 游客权限 -->
           <div class="border border-gray-200 rounded-xl overflow-hidden shadow-md">
@@ -317,7 +326,7 @@
               </ul>
             </div>
           </div>
-          
+
           <!-- 内部人员权限 -->
           <div class="border border-gray-200 rounded-xl overflow-hidden shadow-md">
             <div class="bg-accent/10 p-6">
@@ -361,7 +370,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- 数据查询 -->
     <section id="query" class="py-20 bg-gradient-to-br from-primary/5 to-secondary/10">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -369,46 +378,16 @@
           <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold mb-4">Database Search</h2>
           <p class="text-gray-600 max-w-2xl mx-auto">Search the human Gut Microbial Biobank using the following criteria</p>
         </div>
-        
+
         <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-
-
-            <!------------------改动--------------------------------->
-
           <form method="get">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label class="block text-gray-700 font-medium mb-2">Phylum / Order / Class / Family / Species / Strain</label>
                 <input type="text" name="taxonomic_unit" placeholder="Enter taxonomic information" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
               </div>
-
-
-              <!--
-              <div>
-                <label class="block text-gray-700 font-medium mb-2">Representative strains</label>
-                <input type="text" placeholder="Enter representative strain ID" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
-              </div>
-
-              <div>
-                <label class="block text-gray-700 font-medium mb-2">Renamed Strain Name</label>
-                <input type="text" placeholder="Enter new strain name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
-              </div>
-              
-              <div>
-                <label class="block text-gray-700 font-medium mb-2">CGMCC accessions</label>
-                <input type="text" placeholder="Enter CGMCC accession number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
-              </div>
-              
-              <div class="md:col-span-2">
-                <label class="block text-gray-700 font-medium mb-2">NBRC/KCTC accessions</label>
-                <input type="text" placeholder="Enter NBRC or KCTC accession number" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary">
-              </div>
-              -->
-
-
             </div>
 
-            
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
               <button type="submit" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg transition-colors font-medium flex items-center justify-center">
                 <i class="fa fa-search mr-2"></i>Search Database
@@ -418,7 +397,7 @@
               </button>
             </div>
           </form>
-          
+
           <div class="mt-8 pt-6 border-t border-gray-100">
             <h4 class="font-semibold mb-4">Search Tips</h4>
             <ul class="text-gray-600 text-sm space-y-2">
@@ -437,37 +416,11 @@
             </ul>
           </div>
         </div>
-        
-        <!-- 查询结果示例 -->
-        <!-- 查询结果展示 -->
-{#<div class="mt-8 pt-6 border-t border-gray-100">#}
-{#    {% if results %}#}
-{#        <h4 class="font-semibold mb-4">查询结果</h4>#}
-{#        <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">#}
-{#            <thead>#}
-{#                <tr>#}
-{#                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">保藏号</th>#}
-{#                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">分类单元</th>#}
-{#                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">分离源</th>#}
-{#                    <th class="py-3 px-4 text-left text-sm font-semibold text-gray-600">备注</th>#}
-{#                </tr>#}
-{#            </thead>#}
-{#            <tbody>#}
-{#                {% for item in results %}#}
-{#                    <tr>#}
-{#                        <td class="py-3 px-4">{{ item.deposit_number }}</td>#}
-{#                        <td class="py-3 px-4">{{ item.taxonomic_unit }}</td>#}
-{#                        <td class="py-3 px-4">{{ item.isolation_source }}</td>#}
-{#                        <td class="py-3 px-4">{{ item.notes }}</td>#}
-{#                    </tr>#}
-{#                {% endfor %}#}
-{#            </tbody>#}
-{#        </table>#}
-{#    {% else %}#}
-{#        <p class="text-gray-500">没有查询到匹配的结果。</p>#}
-{#    {% endif %}#}
-{#</div>#}
 
+        <!-- 查询结果展示区域 -->
+        <div class="mt-8 pt-6 border-t border-gray-100">
+          <!-- 结果将通过JS动态插入 -->
+        </div>
       </div>
     </section>
   </main>
@@ -496,7 +449,7 @@
             </a>
           </div>
         </div>
-        
+
         <div>
           <h4 class="text-lg font-semibold mb-6">Contact Us</h4>
           <ul class="space-y-3">
@@ -515,7 +468,7 @@
           </ul>
         </div>
       </div>
-      
+
       <div class="border-t border-gray-800 mt-10 pt-6 flex flex-col md:flex-row justify-between items-center">
         <p class="text-gray-500 text-sm">© 2023 hGMB Database. All rights reserved.</p>
         <div class="flex space-x-6 mt-4 md:mt-0">
@@ -535,23 +488,21 @@
           <i class="fa fa-times text-xl"></i>
         </button>
       </div>
-      
+
       <form id="loginForm">
-  <div class="mb-4">
-    <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
-    <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="Enter your username">
-  </div>
+        <div class="mb-4">
+          <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+          <input type="text" id="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="Enter your username">
+        </div>
 
-  <div class="mb-6">
-    <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
-    <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="Enter your password">
-  </div>
+        <div class="mb-6">
+          <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
+          <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary" placeholder="Enter your password">
+        </div>
 
-  <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg transition-colors font-medium">Login</button>
-</form>
+        <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg transition-colors font-medium">Login</button>
+      </form>
 
-
-      
       <div class="mt-6 text-center">
         <p class="text-gray-600">Need an account? <a href="#" class="text-primary hover:text-primary/80 font-medium">Contact administrator</a></p>
       </div>
@@ -560,6 +511,16 @@
 
   <!-- JavaScript -->
   <script>
+    // 页面加载时检查登录状态
+    document.addEventListener('DOMContentLoaded', function() {
+      checkLoginStatus();
+      // 清除可能的残留错误状态
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('未处理的Promise错误:', event.reason);
+        event.preventDefault(); // 阻止浏览器默认错误提示
+      });
+    });
+
     // 导航栏滚动效果
     window.addEventListener('scroll', function() {
       const navbar = document.getElementById('navbar');
@@ -569,11 +530,11 @@
         navbar.classList.remove('nav-scrolled');
       }
     });
-    
+
     // 移动端菜单切换
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
-    
+
     menuBtn.addEventListener('click', function() {
       mobileMenu.classList.toggle('hidden');
       if (mobileMenu.classList.contains('hidden')) {
@@ -582,13 +543,14 @@
         menuBtn.innerHTML = '<i class="fa fa-times text-2xl"></i>';
       }
     });
-    
-    // 登录模态框
+
+    // 登录模态框控制
     const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
     const loginModal = document.getElementById('loginModal');
     const modalContent = document.getElementById('modalContent');
     const closeModal = document.getElementById('closeModal');
-    
+
     loginBtn.addEventListener('click', function() {
       loginModal.classList.remove('hidden');
       loginModal.classList.add('flex');
@@ -597,7 +559,7 @@
         modalContent.classList.add('scale-100', 'opacity-100', 'transition-all', 'duration-300');
       }, 10);
     });
-    
+
     function closeLoginModal() {
       modalContent.classList.remove('scale-100', 'opacity-100');
       modalContent.classList.add('scale-95', 'opacity-0', 'transition-all', 'duration-300');
@@ -606,14 +568,14 @@
         loginModal.classList.remove('flex');
       }, 300);
     }
-    
+
     closeModal.addEventListener('click', closeLoginModal);
     loginModal.addEventListener('click', function(e) {
       if (e.target === loginModal) {
         closeLoginModal();
       }
     });
-    
+
     // 分类学分布图表
     const taxonomyCtx = document.getElementById('taxonomyChart').getContext('2d');
     new Chart(taxonomyCtx, {
@@ -661,24 +623,22 @@
         }
       }
     });
-    
+
     // 平滑滚动到锚点
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
         e.preventDefault();
-        
+
         const targetId = this.getAttribute('href');
         if (targetId === '#') return;
-        
+
         const targetElement = document.querySelector(targetId);
         if (targetElement) {
-          // 关闭移动菜单（如果打开）
           if (!mobileMenu.classList.contains('hidden')) {
             mobileMenu.classList.add('hidden');
             menuBtn.innerHTML = '<i class="fa fa-bars text-2xl"></i>';
           }
-          
-          // 滚动到目标位置
+
           window.scrollTo({
             top: targetElement.offsetTop - 80,
             behavior: 'smooth'
@@ -687,104 +647,187 @@
       });
     });
 
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
-  e.preventDefault();  // 防止表单默认提交
-
-  // 获取用户名和密码
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  // 创建请求体
-  const data = {
-    username: username,
-    password: password
-  };
-
-  // 使用 fetch 向后台发送登录请求
-  fetch("/login/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => response.json())
-  .then(data => {
-    // 如果登录成功，返回一个 token
-    if (data.access && data.refresh) {
-      // 保存 token
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("refresh_token", data.refresh);
-
-      // 关闭登录模态框
-      closeLoginModal();
-      document.getElementById('loginBtn').style.display = 'none';  // 隐藏登录按钮
-      alert("登录成功！");
-      // 跳转回原界面
-        // window.location.href = '/';  // 你可以根据需要修改为其他页面
-    } else {
-      // 登录失败，弹出错误信息
-      alert("登录失败，用户名或密码错误");
+    // 检查登录状态
+    function checkLoginStatus() {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      } else {
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      }
     }
-  })
-  .catch(error => {
-    console.error("Error during login:", error);
-    alert("发生错误，请稍后重试");
-  });
-});
+
+    // 登出功能
+    logoutBtn.addEventListener('click', function() {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      checkLoginStatus();
+      alert('已成功登出');
+    });
+
+    // 登录功能（适配TokenObtainPairView）
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      if (!username || !password) {
+        alert("请输入用户名和密码");
+        return;
+      }
+
+      fetch("/api/token/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.detail || "登录失败，用户名或密码错误");
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        localStorage.setItem("access_token", data.access);
+        localStorage.setItem("refresh_token", data.refresh);
+        closeLoginModal();
+        checkLoginStatus();
+        document.getElementById("loginForm").reset();
+        alert("登录成功！");
+      })
+      .catch(error => {
+        console.error("登录错误:", error);
+        alert(error.message);
+      });
+    });
 
     document.querySelector("form").addEventListener("submit", function(e) {
-  e.preventDefault();  // 阻止表单默认提交
+        e.preventDefault();
 
-  const taxonomicUnit = document.querySelector('input[name="taxonomic_unit"]').value;
+        const taxonomicUnit = document.querySelector('input[name="taxonomic_unit"]').value.trim();
+        const resultsContainer = document.querySelector('.mt-8.pt-6.border-t.border-gray-100');
 
-  // 确保 taxonomicUnit 存在
-  if (!taxonomicUnit) {
-    alert("请输入分类单元！");
-    return;
-  }
+        if (!taxonomicUnit) {
+            alert("请输入分类单元！");
+            return;
+        }
 
-  // 发送查询请求
-  console.log(`/bacteria/search/?taxonomic_unit=${taxonomicUnit}`);  // 输出请求的 URL 以供调试
+        // 重置结果区域
+        resultsContainer.innerHTML = '<p class="text-gray-600">查询中...</p>';
 
-  fetch(`/bacteria/search/?taxonomic_unit=${taxonomicUnit}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
+        // 构建请求头
+        const headers = {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        };
+
+        // 添加Token（如果存在）
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log("使用Token查询:", token.substring(0, 20) + "...");
+        } else {
+            console.log("未登录，使用匿名查询");
+        }
+
+        // 编码查询参数
+        const encodedUnit = encodeURIComponent(taxonomicUnit);
+        const url = `/bacteria/search/?taxonomic_unit=${encodedUnit}`;
+        console.log("查询URL:", url);
+
+        // 发送查询请求
+        fetch(url, {
+            method: 'GET',
+            headers: headers,
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("查询结果:", data);
+
+            if (data.results && data.results.length > 0) {
+                let resultHTML = '<h4 class="font-semibold mb-3 text-base">查询结果</h4><table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md text-sm">';
+                resultHTML += '<thead><tr>';
+
+                // 根据角色动态生成表头
+                const columns = data.results[0];
+                Object.keys(columns).forEach(field => {
+                    resultHTML += `<th class="py-2.5 px-3.5 text-left font-semibold text-gray-600">${field}</th>`;
+                });
+                resultHTML += '</tr></thead><tbody>';
+
+                // 遍历查询结果生成表格
+                data.results.forEach(item => {
+                    resultHTML += '<tr>';
+                    Object.values(item).forEach(value => {
+                        resultHTML += `<td class="py-2.5 px-3.5">${value || '-'}</td>`;
+                    });
+                    resultHTML += '</tr>';
+                });
+
+                resultHTML += '</tbody></table>';
+                resultsContainer.innerHTML = resultHTML;
+            } else {
+                resultsContainer.innerHTML = '<p class="text-gray-500">没有查询到匹配的结果。</p>';
+            }
+        })
+        .catch(error => {
+            console.error('查询错误详情:', error);
+            resultsContainer.innerHTML = `<p class="text-red-500">${error.message}</p>`;
+        });
+    });
+
+    // 刷新Token函数
+    function refreshToken() {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        return Promise.resolve(null);
+      }
+
+      console.log("尝试刷新Token...");
+      return fetch('/api/token/refresh/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ 'refresh': refreshToken }),
+        credentials: 'include'
+      })
+      .then(response => {
+        console.log("刷新Token响应状态:", response.status);
+        if (!response.ok) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          checkLoginStatus();
+          return null;
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.access) {
+          localStorage.setItem('access_token', data.access);
+          console.log("Token刷新成功");
+          return data.access;
+        }
+        return null;
+      })
+      .catch(error => {
+        console.error("刷新Token失败:", error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        checkLoginStatus();
+        return null;
+      });
     }
-  })
-  .then(response => response.json())
-  .then(data => {
-    const resultsContainer = document.querySelector('.mt-8.pt-6.border-t.border-gray-100');
-
-    // 给结果容器添加最大宽度限制
-    resultsContainer.classList.add('max-w-xs', 'px-2', 'ml-[-10px]'); // 添加 ml-[-10px] 实现左移
-    resultsContainer.classList.remove('max-w-sm', 'pr-20', 'ml-0'); // 移除可能存在的默认左外边距
-
-    if (data.results && data.results.length > 0) {
-      // 如果有查询结果，生成并展示表格
-      // 将 min-w-full 改为更合适的宽度类，例如：
-      // 减小标题字体和间距，表格整体缩小
-      // 标题和表格尺寸稍作放大，保持适度紧凑
-let resultHTML = '<h4 class="font-semibold mb-3 text-base">查询结果</h4><table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md text-sm">';
-resultHTML += '<thead><tr><th class="py-2.5 px-3.5 text-left font-semibold text-gray-600">保藏号</th><th class="py-2.5 px-3.5 text-left font-semibold text-gray-600">分类单元</th><th class="py-2.5 px-3.5 text-left font-semibold text-gray-600">分离源</th><th class="py-2.5 px-3.5 text-left font-semibold text-gray-600">备注</th></tr></thead><tbody>';
-
-// 渲染每一条结果（内边距和字体适中）
-data.results.forEach(item => {
-  resultHTML += `<tr><td class="py-2.5 px-3.5">${item.deposit_number}</td><td class="py-2.5 px-3.5">${item.taxonomic_unit}</td><td class="py-2.5 px-3.5">${item.isolation_source}</td><td class="py-2.5 px-3.5">${item.notes}</td></tr>`;
-});
-
-      resultHTML += '</tbody></table>';
-      resultsContainer.innerHTML = resultHTML;
-    } else {
-      resultsContainer.innerHTML = '<p class="text-gray-500">没有查询到匹配的结果。</p>';
-    }
-  })
-  .catch(error => {
-    console.error('查询发生错误:', error);
-  });
-});
-
   </script>
 </body>
 </html>

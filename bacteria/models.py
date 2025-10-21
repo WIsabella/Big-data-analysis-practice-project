@@ -38,7 +38,7 @@ class QueraDataCustomuser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'  # 使用 username 作为登录字段
     REQUIRED_FIELDS = ['role']  # 创建用户时要求填写 role 字段
     class Meta:
-        managed = True
+        managed = False
         db_table = 'quera_data_customuser'
 
 

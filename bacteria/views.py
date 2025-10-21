@@ -1,8 +1,10 @@
+from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, BasePermission
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from.models import Test1
@@ -12,28 +14,28 @@ from django.conf import settings
 from django.db import connection
 import os
 import csv
+import pandas as pd
 
 '''定义权限，每个用户可以拥有哪一些权限'''
 
 '''查询权限'''
-class CanQueryBacteria(APIView):
+class CanQueryBacteria(BasePermission):
     def has_permission(self,request, view):
-        return request.user.has_perm("view_test1")
+        return request.user.has_perm("bacteria.view_test1")
 
 '''上传权限'''
-class CanAddBacteria(APIView):
+class CanAddBacteria(BasePermission):
     def has_permission(self, request, view):
-        return request.user.has_perm("add_test1")
+        return request.user.has_perm("bacteria.add_test1")
 
 '''删除权限'''
-class CanDeleteBacteria(APIView):
+class CanDeleteBacteria(BasePermission):
     def has_permission(self, request, view):
-        return request.user.has_perm('delete_test1')
+        return request.user.has_perm('bacteria.delete_test1')
 
 def HomePage(request):
     return render(request, '../templates/index.html')
 @api_view(['GET'])
-@permission_classes([IsAuthenticated, CanQueryBacteria])
 def search_bacteria(request):
     '''测试新功能'''
     form = BacteriaSearchForm(request.GET or None)
@@ -47,7 +49,6 @@ def search_bacteria(request):
             # 1. 直接使用ORM查询，Django会自动处理特殊字符转义
             # 无需手动调用escape_string，避免AttributeError
             results = Test1.objects.filter(taxonomic_unit__icontains=taxonomy_value)
-
             # 2. 终端提示
             print(f"\n[查询提示] 关键词: {taxonomy_value}，查询到 {len(results)} 条结果")
 
@@ -59,19 +60,48 @@ def search_bacteria(request):
 
                 with open(file_path, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
+                    item_values = []
+                    columns_list = []
                     # 表头：根据你的模型字段修改
-                    writer.writerow(['保藏号', '分类单元', '分离源', '需氧性'])
+                    if not is_authenticated:
+                       columns_list.extend(['deposit_number', 'taxonomic_unit', 'isolation_source', 'notes'])
+                       writer.writerow(['保藏号', '分类单元', '分离源', '需氧性'])
+                       for item in results:
+                           item_values.append([
+                               item.deposit_number,
+                               item.taxonomic_unit,
+                               item.isolation_source,
+                               item.notes
+                           ])
+
+                    elif is_authenticated and request.user.role == 'student':
+                        columns_list.extend(['deposit_number', 'taxonomic_unit', 'isolation_source', 'notes', 'health_status'])
+                        writer.writerow(['保藏号', '分类单元', '分离源', '需氧性', '健康状况'])
+                        for item in results:
+                            item_values.append([
+                                item.deposit_number,
+                                item.taxonomic_unit,
+                                item.isolation_source,
+                                item.notes,
+                                item.health_status
+                            ])
                     # 数据行：使用模型字段名（如taxonomy对应“分类单元”）
+                    elif is_authenticated and request.user.role == 'admin':
+                        columns_list.extend(['deposit_number', 'taxonomic_unit', 'isolation_source', 'notes', 'health_status', 'living_area'])
+                        writer.writerow(['保藏号', '分类单元', '分离源', '需氧性', '健康状况', '生活地区'])
                     for item in results:
-                        writer.writerow([
+                        item_values.append([
                             item.deposit_number,
                             item.taxonomic_unit,
                             item.isolation_source,
-                            item.notes
+                            item.notes,
+                            item.health_status,
+                            item.living_area
                         ])
+                    writer.writerows(item_values)
 
                 print(f"[保存提示] 结果已保存至: {file_path}\n")
-                results = list(results.values('deposit_number', 'taxonomic_unit', 'isolation_source', 'notes'))
+                results = list(results.values(*columns_list))
 
                 return JsonResponse({'results': results})
             else:
@@ -120,6 +150,21 @@ def search_bacteria(request):
     # return render(request, "../templates/index.html", context)
 
 
-#@login_required
-def authenticated_search(request):
-    return search_bacteria(request)
+'''实现用户的登录功能'''
+@api_view(['POST'])
+@permission_classes([IsAuthenticated, CanAddBacteria])
+def add_bacteria(request):
+   try:
+    bacteria_list = []
+    excel_file = request.FILES.get('excel_file')
+    data = pd.read_excel(excel_file)
+
+    for index in data.index:
+        values = data.loc[index, :].to_dict()
+        bacteria_list.append(
+           Test1(**values)
+        )
+    Test1.objects.bulk_create(bacteria_list)
+    return Response({"message": "Bacteria added successfully!"}, status=201)
+   except Exception as e:
+       return Response({"message": str(e)}, status=400)

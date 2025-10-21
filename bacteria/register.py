@@ -11,6 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from bacteria.models import QueraDataCustomuser, Test1
 
 if __name__ == '__main__':
-    user = QueraDataCustomuser.objects.create_user(username='test3', password='123456', role='student')
+    user = QueraDataCustomuser.objects.create_user(username='老师1', password='000', role='admin')
     content_type = ContentType.objects.get_for_model(Test1)
-    user.user_permissions.add(Permission.objects.get(codename='view_test1', content_type=content_type))
+    user.user_permissions.add(Permission.objects.get(codename='view_test1'  , content_type=content_type))
