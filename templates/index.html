@@ -380,6 +380,30 @@
         </div>
 
         <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+          <!-- Excel文件上传区域 - 移动到查询表单上方 -->
+          <div class="mb-8 pb-6 border-b border-gray-100">
+            <h4 class="font-semibold mb-4">Upload Excel File</h4>
+            <p class="text-gray-600 text-sm mb-4">Upload an Excel file to batch query or import data (requires login)</p>
+
+            <div id="uploadArea" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer">
+              <input type="file" id="excelFile" accept=".xlsx,.xls" class="hidden">
+              <div class="flex flex-col items-center justify-center">
+                <i class="fa fa-file-excel-o text-4xl text-green-500 mb-3"></i>
+                <p class="text-gray-700 font-medium">Click to select Excel file or drag and drop here</p>
+                <p class="text-gray-500 text-sm mt-1">Supports .xlsx and .xls files</p>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-center">
+              <button id="uploadBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition-colors font-medium flex items-center">
+                <i class="fa fa-upload mr-2"></i>Upload File
+              </button>
+            </div>
+
+            <div id="uploadStatus" class="mt-4 text-center hidden"></div>
+          </div>
+
+          <!-- 查询表单 -->
           <form method="get">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
@@ -705,8 +729,145 @@
       })
       .catch(error => {
         console.error("登录错误:", error);
-        alert(error.message);
+        alert(error.message || "登录失败，请检查用户名和密码");
       });
+    });
+
+    // Excel文件上传功能
+    let selectedFile = null;
+
+    // 文件选择处理
+    document.getElementById('uploadArea').addEventListener('click', function() {
+      document.getElementById('excelFile').click();
+    });
+
+    // 拖放功能
+    document.getElementById('uploadArea').addEventListener('dragover', function(e) {
+      e.preventDefault();
+      this.classList.add('border-primary', 'bg-primary/5');
+    });
+
+    document.getElementById('uploadArea').addEventListener('dragleave', function(e) {
+      e.preventDefault();
+      this.classList.remove('border-primary', 'bg-primary/5');
+    });
+
+    document.getElementById('uploadArea').addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('border-primary', 'bg-primary/5');
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileSelection(files[0]);
+      }
+    });
+
+    // 文件选择处理
+    document.getElementById('excelFile').addEventListener('change', function(e) {
+      if (e.target.files.length > 0) {
+        handleFileSelection(e.target.files[0]);
+      }
+    });
+
+    function handleFileSelection(file) {
+      // 检查文件类型
+      const allowedTypes = [
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/octet-stream'
+      ];
+
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+
+      if (!allowedTypes.includes(file.type) && !['xls', 'xlsx'].includes(fileExtension)) {
+        alert('请选择有效的Excel文件 (.xls 或 .xlsx)');
+        return;
+      }
+
+      selectedFile = file;
+
+      // 更新UI显示
+      const uploadArea = document.getElementById('uploadArea');
+      uploadArea.innerHTML = `
+        <div class="flex flex-col items-center justify-center">
+          <i class="fa fa-check-circle text-4xl text-green-500 mb-3"></i>
+          <p class="text-gray-700 font-medium">已选择文件</p>
+          <p class="text-gray-500 text-sm mt-1">${file.name}</p>
+          <p class="text-gray-400 text-xs mt-2">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+        </div>
+      `;
+    }
+
+    // 上传文件函数
+    async function uploadExcelFile(token, file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const response = await fetch('bacteria/upload/', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.detail || `上传失败: ${response.status}`);
+        }
+
+        return await response.json();
+      } catch (error) {
+        console.error('上传错误:', error);
+        throw error;
+      }
+    }
+
+    // 上传按钮点击事件
+    document.getElementById('uploadBtn').addEventListener('click', async function() {
+      const token = localStorage.getItem('access_token');
+
+      if (!token) {
+        alert('请先登录以上传文件');
+        loginBtn.click();
+        return;
+      }
+
+      if (!selectedFile) {
+        alert('请先选择Excel文件');
+        return;
+      }
+
+      const uploadBtn = this;
+      const originalText = uploadBtn.innerHTML;
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>上传中...';
+
+      const statusDiv = document.getElementById('uploadStatus');
+      statusDiv.classList.remove('hidden', 'text-red-500', 'text-green-500');
+      statusDiv.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>文件上传中，请稍候...';
+      statusDiv.classList.add('text-blue-500');
+
+      try {
+        const result = await uploadExcelFile(token, selectedFile);
+
+        statusDiv.innerHTML = '<i class="fa fa-check-circle mr-2"></i>文件上传成功！';
+        statusDiv.classList.remove('text-blue-500');
+        statusDiv.classList.add('text-green-500');
+
+        console.log('上传结果:', result);
+        // 可以在这里处理上传成功后的逻辑，比如显示结果或刷新页面
+
+      } catch (error) {
+        console.error('上传失败:', error);
+        statusDiv.innerHTML = `<i class="fa fa-exclamation-circle mr-2"></i>${error.message}`;
+        statusDiv.classList.remove('text-blue-500');
+        statusDiv.classList.add('text-red-500');
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = originalText;
+      }
     });
 
     document.querySelector("form").addEventListener("submit", function(e) {
@@ -784,50 +945,6 @@
             resultsContainer.innerHTML = `<p class="text-red-500">${error.message}</p>`;
         });
     });
-
-    // 刷新Token函数
-    function refreshToken() {
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (!refreshToken) {
-        return Promise.resolve(null);
-      }
-
-      console.log("尝试刷新Token...");
-      return fetch('/api/token/refresh/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({ 'refresh': refreshToken }),
-        credentials: 'include'
-      })
-      .then(response => {
-        console.log("刷新Token响应状态:", response.status);
-        if (!response.ok) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          checkLoginStatus();
-          return null;
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data.access) {
-          localStorage.setItem('access_token', data.access);
-          console.log("Token刷新成功");
-          return data.access;
-        }
-        return null;
-      })
-      .catch(error => {
-        console.error("刷新Token失败:", error);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        checkLoginStatus();
-        return null;
-      });
-    }
   </script>
 </body>
 </html>

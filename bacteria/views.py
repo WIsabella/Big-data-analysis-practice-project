@@ -147,8 +147,8 @@ def search_bacteria(request):
     #     "results": results,
     #     "is_authenticated": is_authenticated,
     # }
-    # return render(request, "../templates/index.html", context)
-
+    # return
+    # render(request, "../templates/index.html", context)
 
 '''实现用户的登录功能'''
 @api_view(['POST'])

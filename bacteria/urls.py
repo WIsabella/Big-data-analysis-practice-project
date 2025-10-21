@@ -3,4 +3,5 @@ from. import views
 
 urlpatterns = [
     path("search/", views.search_bacteria, name="bacteria_search"),
+    path("upload/", views.add_bacteria, name="bacteria_add"),
 ]
