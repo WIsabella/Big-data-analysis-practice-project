@@ -2,6 +2,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
@@ -15,6 +16,9 @@ from django.db import connection
 import os
 import csv
 import pandas as pd
+
+import json
+from .models import OrderState
 
 '''定义权限，每个用户可以拥有哪一些权限'''
 
@@ -35,6 +39,7 @@ class CanDeleteBacteria(BasePermission):
 
 def HomePage(request):
     return render(request, '../templates/index.html')
+
 @api_view(['GET'])
 def search_bacteria(request):
     '''测试新功能'''
@@ -60,6 +65,7 @@ def search_bacteria(request):
 
                 with open(file_path, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
+
                     item_values = []
                     columns_list = []
                     # 表头：根据你的模型字段修改
@@ -151,6 +157,7 @@ def search_bacteria(request):
     # render(request, "../templates/index.html", context)
 
 '''实现用户的登录功能'''
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, CanAddBacteria])
 def add_bacteria(request):
@@ -168,3 +175,62 @@ def add_bacteria(request):
     return Response({"message": "Bacteria added successfully!"}, status=201)
    except Exception as e:
        return Response({"message": str(e)}, status=400)
+
+
+'''这是一个创建订单的函数'''
+def createOrder(request):
+   try:
+    data = json.loads(request.body)
+    username = data.get('username') #返回用户名
+    bacteria_list = data.get('bacterias') #返回选择的菌种序列
+
+    with connection.cursor() as cursor:
+        cursor.execute(f"""
+                 create table `{username}` if not exists(
+                    bacteria_id varchar(100) primary key
+                 )    
+        """)
+
+        insert_sql = f"""
+                insert into `{username}` (bacteria_id)
+                values(%s)
+            """
+
+        for bacteria in bacteria_list:
+            cursor.execute(insert_sql, [bacteria])
+    cursor.close()
+        # 执行数据库操作（例如创建表和插入数据）
+        # 如果一切顺利，返回成功响应
+    return JsonResponse({'message': 'Order created successfully'}, status=201)
+
+   except Exception as e:
+        # 如果发生错误，返回错误响应
+    return JsonResponse({'error': str(e)}, status=500)
+
+def submmitOrder(request):
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        with connection.cursor() as cursor:
+            table_name = cursor.execute(f"""
+              show tables like `{username}`
+            """)
+
+            if table_name != username:
+                return JsonResponse({'message': 'table not exists'}, status=400)
+            OrderState.objects.create(username=username, state="wait")
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+
+
+
+
+
+
+
+
+
+
