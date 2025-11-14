@@ -79,16 +79,14 @@ class Test1(models.Model):
         managed = False
         db_table = 'test1'
 
-'''
-表示每个用户的订单状态的model
-字段：
 
-用户名
-日期
-完成状态
-
-'''
 class OrderState(models.Model):
+    '''
+    表示每个用户的订单状态的model，为每个提交的订单创建一个实例
+    username:用户名
+    state:订单状态。
+    date：日期
+    '''
     username = models.CharField(max_length=150, unique=True)
     state = models.CharField(max_length=4)## end表示已经完成，wait表示没有完成
     date = models.DateTimeField(auto_now_add=True)##无需手动传入

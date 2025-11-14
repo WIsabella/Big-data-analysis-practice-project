@@ -177,8 +177,11 @@ def add_bacteria(request):
        return Response({"message": str(e)}, status=400)
 
 
-'''这是一个创建订单的函数'''
 def createOrder(request):
+   '''
+   这是一个创建订单的函数
+   bacteria_list: 列表类型，存储从request中传回来的购物车中的每个菌种的编号
+   '''
    try:
     data = json.loads(request.body)
     username = data.get('username') #返回用户名
@@ -208,6 +211,10 @@ def createOrder(request):
     return JsonResponse({'error': str(e)}, status=500)
 
 def submmitOrder(request):
+    '''
+    该函数实现一个功能：将订单提交之后把对应用户的订单表删除，并且在订单状态的记录表OrderState中为该订单创建一个实例来记录状态
+    OrderState:详情见model.py的OrderState类
+    '''
     try:
         data = json.loads(request.body)
         username = data.get('username')
@@ -219,6 +226,11 @@ def submmitOrder(request):
             if table_name != username:
                 return JsonResponse({'message': 'table not exists'}, status=400)
             OrderState.objects.create(username=username, state="wait")
+            cursor.execute(
+                f"""
+                  delete table if exists `{username}`
+                """
+            )
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
