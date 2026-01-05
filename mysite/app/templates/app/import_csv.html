@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件导入测试（支持Excel图片）</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        input[type="file"] {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #42b983;
+        }
+        button {
+            padding: 0.8rem 2rem;
+            background: #42b983;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #359469;
+        }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: left;
+            white-space: pre-wrap; /* 保留换行，显示完整错误 */
+            line-height: 1.6;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .debug-info {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #333;
+            text-align: left;
+            border: 1px solid #e2e6ea;
+        }
+        .progress {
+            margin-top: 1rem;
+            display: none;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #42b983;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .excel-tip {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: #666;
+            text-align: left;
+            padding: 0.8rem;
+            background: #fafafa;
+            border-radius: 4px;
+            border-left: 3px solid #42b983;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>文件导入测试（支持Excel图片）</h1>
+        
+        <!-- 文件选择 -->
+        <input 
+            type="file" 
+            id="file-input"
+            accept=".csv,.xlsx"
+            required
+        >
+        
+        <!-- 上传按钮 -->
+        <button id="upload-btn" disabled>开始上传测试</button>
+
+        <!-- 上传进度条 -->
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">上传中...<span id="progress-text">0%</span></p>
+        </div>
+
+        <!-- Excel图片导入提示 -->
+        <div class="excel-tip">
+            <strong>Excel图片导入说明：</strong>
+            <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0;">
+                <li>仅支持 .xlsx 格式的嵌入式图片（直接粘贴/插入到单元格）</li>
+                <li>图片会按第一列主键（deposit_number）命名：主键_slant.jpg / 主键_liquid.jpg</li>
+                <li>图片列需与后端配置一致（默认第24列=slant图，第25列=liquid图）</li>
+                <li>图片大小限制：5MB，支持格式：jpg/png/gif</li>
+            </ul>
+        </div>
+
+        <!-- 结果显示（包含完整错误信息） -->
+        <div id="result" class="result" style="display: none;"></div>
+        
+        <!-- 调试信息（显示请求地址和字段名） -->
+        <div id="debug" class="debug-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const uploadBtn = document.getElementById('upload-btn');
+        const resultEl = document.getElementById('result');
+        const debugEl = document.getElementById('debug');
+        const progressEl = document.getElementById('progress');
+        const progressFillEl = document.getElementById('progress-fill');
+        const progressTextEl = document.getElementById('progress-text');
+
+        // 接口地址（请确保和你的Django路由完全一致！）
+        const API_URL = 'https://ddtwk.site/api/test1/upload/import_csv/';
+
+        // 文件选择事件：启用按钮+清空历史结果
+        fileInput.addEventListener('change', function() {
+            uploadBtn.disabled = !this.files[0];
+            resultEl.style.display = 'none';
+            debugEl.style.display = 'none';
+            progressEl.style.display = 'none';
+            
+            // 显示文件类型提示
+            const file = this.files[0];
+            if (file && file.name.endsWith('.xlsx')) {
+                document.querySelector('.excel-tip').style.display = 'block';
+            } else {
+                document.querySelector('.excel-tip').style.display = 'none';
+            }
+        });
+
+        // 上传按钮点击事件
+        uploadBtn.addEventListener('click', async function() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // 构建FormData（字段名严格为csv_file，后端要求）
+            const formData = new FormData();
+            formData.append('csv_file', file);
+
+            // 显示调试信息
+            debugEl.innerHTML = `
+                <p><strong>请求地址：</strong>${API_URL}</p>
+                <p><strong>文件字段名：</strong>csv_file（后端要求）</p>
+                <p><strong>上传文件：</strong>${file.name}（大小：${formatFileSize(file.size)}）</p>
+                <p><strong>文件类型：</strong>${file.name.endsWith('.xlsx') ? 'Excel（支持嵌入式图片）' : 'CSV（无图片支持）'}</p>
+                <p><strong>请求类型：</strong>异步请求（X-Requested-With: XMLHttpRequest）</p>
+                <p><strong>CSRF令牌：</strong>${getCsrfToken() ? '已携带' : '未携带（可能导致403）'}</p>
+            `;
+            debugEl.style.display = 'block';
+
+            // 显示进度条
+            progressEl.style.display = 'block';
+            progressFillEl.style.width = '0%';
+            progressTextEl.textContent = '0%';
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': getCsrfToken() // 携带CSRF令牌（解决403问题）
+                    },
+                    // 监听上传进度
+                    onprogress: function(e) {
+                        if (e.lengthComputable) {
+                            const percent = Math.round((e.loaded / e.total) * 100);
+                            progressFillEl.style.width = `${percent}%`;
+                            progressTextEl.textContent = `${percent}%`;
+                        }
+                    }
+                });
+
+                // 先获取完整响应内容，不管是JSON还是文本
+                const responseText = await response.text();
+                let data = {};
+
+                try {
+                    // 尝试解析为JSON（后端正常响应）
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    // 解析失败，直接把响应文本作为错误消息
+                    data = {
+                        status: 'error',
+                        message: `后端返回：${responseText}`
+                    };
+                }
+
+                // 隐藏进度条
+                progressEl.style.display = 'none';
+
+                // 显示结果（完整错误信息）
+                resultEl.style.display = 'block';
+                if (response.ok && data.status === 'success') {
+                    resultEl.className = 'result success';
+                    // 针对Excel图片导入，增加图片相关提示
+                    const extraTip = file.name.endsWith('.xlsx') 
+                        ? '<br>💡 图片已保存到服务器 media/excel_images/ 目录，按主键命名'
+                        : '';
+                    
+                    resultEl.innerHTML = `
+                        <strong>✅ 导入成功！</strong>
+                        <br>消息：${data.message}
+                        <br>创建记录数：${data.created_count}
+                        <br>跳过无效数：${data.skipped_count}
+                        ${extraTip}
+                        <br><br>📌 数据库字段说明：
+                        <br>- slant_photo：${file.name.endsWith('.xlsx') ? '图片相对路径（如 excel_images/HA0001_slant.jpg）' : '原始文本值'}
+                        <br>- liquid_photo：${file.name.endsWith('.xlsx') ? '图片相对路径（如 excel_images/HA0001_liquid.jpg）' : '原始文本值'}
+                    `;
+                    fileInput.value = '';
+                } else {
+                    resultEl.className = 'result error';
+                    // 针对图片导入常见错误，增加排查提示
+                    const excelErrorTip = file.name.endsWith('.xlsx') 
+                        ? '<br><br>🖼️ 图片导入相关排查：' +
+                          '<br>1. 图片是否为嵌入式（直接粘贴到单元格）' +
+                          '<br>2. 图片列是否与后端配置一致（默认24列=slant，25列=liquid）' +
+                          '<br>3. 图片格式是否为jpg/png/gif，大小是否≤5MB' +
+                          '<br>4. 第一列主键（deposit_number）是否为空'
+                        : '';
+                    
+                    resultEl.innerHTML = `
+                        <strong>❌ 导入失败（状态码：${response.status}）</strong>
+                        <br>错误详情：${data.message || '后端未返回具体错误'}
+                        ${excelErrorTip}
+                        <br><br>🔍 通用排查方向：
+                        1. 接口地址是否正确（当前：${API_URL}）
+                        2. 文件字段名是否为csv_file（后端要求）
+                        3. 文件格式是否为.csv/.xlsx（不支持.xls）
+                        4. 跨域时CSRF令牌是否有效（F12控制台查看是否有403错误）
+                        5. 后端日志是否有图片处理相关错误（如格式不支持、大小超限）
+                    `;
+                    uploadBtn.disabled = false; // 错误时允许重新上传
+                }
+            } catch (error) {
+                // 隐藏进度条
+                progressEl.style.display = 'none';
+                
+                resultEl.style.display = 'block';
+                resultEl.className = 'result error';
+                resultEl.innerHTML = `
+                    <strong>❌ 请求失败！</strong>
+                    <br>错误详情：${error.message}
+                    <br><br>🌐 网络相关排查：
+                    1. 服务器是否正常运行（访问 ${API_URL} 看是否能打开）
+                    2. 网络是否能访问目标服务器（排查防火墙/跨域配置）
+                    3. 浏览器控制台是否有CORS（跨域）错误（需后端配置跨域）
+                    4. CSRF令牌是否有效（跨域场景需后端关闭CSRF或配置允许）
+                `;
+                console.error('错误日志：', error);
+                uploadBtn.disabled = false; // 错误时允许重新上传
+            }
+        });
+
+        // 获取CSRF令牌（解决Django CSRF验证问题）
+        function getCsrfToken() {
+            const cookieValue = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            
+            // 跨域时手动输入令牌（可选）
+            if (!cookieValue) {
+                // 注释掉强制提示，避免干扰，改为在调试信息中提示
+                // alert('未自动获取到CSRF令牌，请从Django后台复制！\n获取方式：访问Django任意页面 → F12 → Application → Cookies → csrftoken');
+                // return prompt('请输入CSRF令牌（无则填空）：') || '';
+                return '';
+            }
+            return cookieValue;
+        }
+
+        // 格式化文件大小（B→KB/MB）
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+    </script>
+</body>
+</html>

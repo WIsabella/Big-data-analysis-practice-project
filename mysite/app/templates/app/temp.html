@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Submission</title>
+</head>
+<body>
+    <h1>Submit Data</h1>
+    <form id="dataForm">
+        {% csrf_token %}  <!-- CSRF token -->
+
+        <label for="deposit_number">Deposit Number:</label><br>
+        <input type="text" id="deposit_number" name="deposit_number"><br><br>
+
+        <label for="isolation_date">Isolation Date:</label><br>
+        <input type="text" id="isolation_date" name="isolation_date"><br><br>
+
+        <label for="isolator">Isolator:</label><br>
+        <input type="text" id="isolator" name="isolator"><br><br>
+
+        <label for="original_strain_number">Original Strain Number:</label><br>
+        <input type="text" id="original_strain_number" name="original_strain_number"><br><br>
+
+        <label for="closest_species">Closest Species:</label><br>
+        <input type="text" id="closest_species" name="closest_species"><br><br>
+
+        <label for="similarity_percentage">Similarity Percentage:</label><br>
+        <input type="number" id="similarity_percentage" name="similarity_percentage" step="0.1"><br><br>
+
+        <label for="16s">16S Sequence:</label><br>
+        <input type="text" id="16s" name="number_16s"><br><br>
+
+        <label for="length">Length:</label><br>
+        <input type="number" id="length" name="length"><br><br>
+
+        <label for="accession">Accession:</label><br>
+        <input type="text" id="accession" name="accession"><br><br>
+
+        <label for="taxonomic_unit">Taxonomic Unit:</label><br>
+        <input type="text" id="taxonomic_unit" name="taxonomic_unit"><br><br>
+
+        <label for="isolation_source">Isolation Source:</label><br>
+        <input type="text" id="isolation_source" name="isolation_source"><br><br>
+
+        <label for="sample_collection_time">Sample Collection Time:</label><br>
+        <input type="datetime-local" id="sample_collection_time" name="sample_collection_time"><br><br>
+
+        <label for="gender">Gender:</label><br>
+        <input type="text" id="gender" name="gender"><br><br>
+
+        <label for="age">Age:</label><br>
+        <input type="number" id="age" name="age"><br><br>
+
+        <label for="health_status">Health Status:</label><br>
+        <input type="text" id="health_status" name="health_status"><br><br>
+
+        <label for="living_area">Living Area:</label><br>
+        <input type="text" id="living_area" name="living_area"><br><br>
+
+        <label for="BMI">BMI:</label><br>
+        <input type="number" id="BMI" name="BMI" step="0.1"><br><br>
+
+        <label for="isolation_medium">Isolation Medium:</label><br>
+        <input type="text" id="isolation_medium" name="isolation_medium"><br><br>
+
+        <label for="identification_medium">Identification Medium:</label><br>
+        <input type="text" id="identification_medium" name="identification_medium"><br><br>
+
+        <label for="culture_temperature">Culture Temperature (°C):</label><br>
+        <input type="number" id="culture_temperature" name="culture_temperature"><br><br>
+
+        <label for="recommended_culture_time">Recommended Culture Time (hrs):</label><br>
+        <input type="number" id="recommended_culture_time" name="recommended_culture_time"><br><br>
+
+        <label for="aerobicity">Aerobicity:</label><br>
+        <input type="text" id="aerobicity" name="aerobicity"><br><br>
+
+        <label for="receipt_date">Receipt Date:</label><br>
+        <input type="datetime-local" id="receipt_date" name="receipt_date"><br><br>
+
+        <label for="slant_photo">Slant Photo (Yes/No):</label><br>
+        <input type="text" id="slant_photo" name="slant_photo"><br><br>
+
+        <label for="liquid_photo">Liquid Photo (Yes/No):</label><br>
+        <input type="text" id="liquid_photo" name="liquid_photo"><br><br>
+
+        <label for="slant_storage">Slant Storage:</label><br>
+        <input type="number" id="slant_storage" name="slant_storage"><br><br>
+
+        <label for="glycerol_preservation">Glycerol Preservation:</label><br>
+        <input type="number" id="glycerol_preservation" name="glycerol_preservation"><br><br>
+
+        <label for="lyophilization_preservation">Lyophilization Preservation:</label><br>
+        <input type="number" id="lyophilization_preservation" name="lyophilization_preservation"><br><br>
+
+        <label for="notes">Notes:</label><br>
+        <textarea id="notes" name="notes"></textarea><br><br>
+
+        <!-- Adding metabolomics_data and Genomic_Information fields -->
+        <label for="metabolomics_data">Metabolomics Data:</label><br>
+        <textarea id="metabolomics_data" name="metabolomics_data"></textarea><br><br>
+
+        <label for="Genomic_Information">Genomic Information:</label><br>
+        <textarea id="Genomic_Information" name="Genomic_Information"></textarea><br><br>
+
+        <input type="submit" value="Submit Data">
+    </form>
+
+    <div id="responseMessage"></div>
+
+    <script>
+        document.getElementById("dataForm").addEventListener("submit", function(event) {
+            event.preventDefault();  // Prevent default form submission
+
+            const formData = new FormData(this);
+            const data = {};
+
+            // Collect form data into an object
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // Get the CSRF token from the cookie
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            // Log the data being sent to ensure it's correct
+            console.log(data);  // Log form data to check before sending
+
+            // Send data to backend using fetch
+            fetch("/api/test1/upload/save_data/", {
+                method: "POST",
+                body: formData,    // 直接传 FormData
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                }
+            })
+
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("responseMessage").innerText = data.message;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById("responseMessage").innerText = 'Error occurred while saving data.';
+            });
+        });
+    </script>
+</body>
+</html>
